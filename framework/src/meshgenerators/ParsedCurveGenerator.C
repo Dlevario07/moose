@@ -11,6 +11,7 @@
 #include "LinearInterpolation.h"
 #include "MooseUtils.h"
 #include "CastUniquePointer.h"
+#include "MooseMeshUtils.h"
 
 #include "libmesh/fparser_ad.hh"
 #include "libmesh/edge_edge2.h"
@@ -66,7 +67,8 @@ ParsedCurveGenerator::validParams()
       "max_oversample_number_factor>100",
       "For each section of the curve, the maximum number of oversampling points is the product of "
       "this factor and the number of nodes on the curve.");
-
+  params.addParam<std::vector<BoundaryName>>("node_set_boundaries",
+                                             "vector of values of the node sets from a mesh??");
   params.addClassDescription("This ParsedCurveGenerator object is designed to generate a mesh of a "
                              "curve that consists of EDGE2 elements.");
 
@@ -87,7 +89,8 @@ ParsedCurveGenerator::ParsedCurveGenerator(const InputParameters & parameters)
                                      ? getParam<unsigned int>("forced_closing_num_segments")
                                      : 0),
     _oversample_factor(getParam<Real>("oversample_factor")),
-    _max_oversample_number_factor(getParam<unsigned int>("max_oversample_number_factor"))
+    _max_oversample_number_factor(getParam<unsigned int>("max_oversample_number_factor")),
+    _node_set_boundaries(getParam<std::vector<BoundaryName>>("node_set_boundaries"))
 {
   if (std::adjacent_find(_section_bounding_t_values.begin(), _section_bounding_t_values.end()) !=
       _section_bounding_t_values.end())
@@ -226,6 +229,24 @@ ParsedCurveGenerator::generate()
     elem->set_node(0) = nodes[i];
     elem->set_node(1) = nodes[(i + 1) % nodes.size()];
     elem->subdomain_id() = 1;
+  }
+
+  if (isParamValid("node_set_boundaries"))
+  {
+    // Get a reference to our BoundaryInfo object for later use
+    BoundaryInfo & boundary_info = mesh->get_boundary_info();
+    int i = 0;
+    for (auto & side_name : _node_set_boundaries)
+    {
+      // Write the name alias of the boundary id to the mesh boundary info
+      boundary_info.nodeset_name(i) = side_name;
+      // too many mesh generators are hardcoded for sidesets
+      boundary_info.sideset_name(i++) = side_name;
+    }
+
+    boundary_info.add_node(*nodes.begin(), boundary_info.get_id_by_name(_node_set_boundaries[0]));
+    boundary_info.add_node(*(nodes.end() - 1),
+                           boundary_info.get_id_by_name(_node_set_boundaries[1]));
   }
 
   return dynamic_pointer_cast<MeshBase>(mesh);
