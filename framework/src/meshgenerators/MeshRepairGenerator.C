@@ -67,20 +67,30 @@ MeshRepairGenerator::generate()
         {
           for (auto & elem_node : elem->node_ref_range())
           {
-            // Compares the coordinates
-            if (*node == elem_node)
+            Real tol = 1e-8;
+            // Compares the coordinates (add absoluteFuzzyEqual)
+            const auto x_node = (*node)(0);
+            const auto x_elem_node = elem_node(0);
+            const auto y_node = (*node)(1);
+            const auto y_elem_node = elem_node(1);
+            const auto z_node = (*node)(2);
+            const auto z_elem_node = elem_node(2);
+            // static_cast<const Point *>(node) == static_cast<const Point>(elem_node)
+            if (MooseUtils::absoluteFuzzyEqual(x_node, x_elem_node, tol) &&
+                MooseUtils::absoluteFuzzyEqual(y_node, y_elem_node, tol) &&
+                MooseUtils::absoluteFuzzyEqual(z_node, z_elem_node, tol))
             {
               // Coordinates are the same but it's not the same node
               // Replace the node in the element
-              elem->set_node(elem->local_edge_node()) = node;
+              const_cast<Elem *>(elem)->set_node(elem->get_node_index(&elem_node)) = node;
+              _num_fixed_nodes++;
+              _console << "Stitch nodes at : " << *node << std::endl;
             }
           }
-          // _num_fixed_nodes++;
-          // _console << "stitch at : " << *node << std::endl;
         }
       }
     }
-    _console << "Number of nodes overlapping : " << _num_fixed_nodes << std::endl;
+    _console << "Number of nodes overlapping which got merged: " << _num_fixed_nodes << std::endl;
   }
   return dynamic_pointer_cast<MeshBase>(mesh);
 }
