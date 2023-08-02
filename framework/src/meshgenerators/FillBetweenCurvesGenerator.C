@@ -110,17 +110,17 @@ FillBetweenCurvesGenerator::generate()
   std::vector<dof_id_type> curve_1_ordered_nodes;
   std::vector<dof_id_type> curve_2_ordered_nodes;
 
-  try
-  {
-    FillBetweenPointVectorsTools::isCurveOpenSingleSegment(*input_mesh_1,
-                                                           max_input_mesh_1_node_radius,
-                                                           curve_1_ordered_nodes,
-                                                           curveCentroidPoint(*input_mesh_1));
-  }
-  catch (MooseException & e)
-  {
-    paramError("curve_1", e.what());
-  }
+  // try
+  // {
+  FillBetweenPointVectorsTools::isCurveOpenSingleSegment(*input_mesh_1,
+                                                         max_input_mesh_1_node_radius,
+                                                         curve_1_ordered_nodes,
+                                                         curveCentroidPoint(*input_mesh_1));
+  // }
+  // catch (MooseException & e)
+  // {
+  //   paramError("input_mesh_1", e.what());
+  // }
   try
   {
     FillBetweenPointVectorsTools::isCurveOpenSingleSegment(*input_mesh_2,
@@ -128,10 +128,10 @@ FillBetweenCurvesGenerator::generate()
                                                            curve_2_ordered_nodes,
                                                            curveCentroidPoint(*input_mesh_2));
   }
-  catch (MooseException & e)
-  {
-    paramError("curve_2", e.what());
-  }
+  // catch (MooseException & e)
+  // {
+  //   paramError("curve_2", e.what());
+  // }
 
   std::vector<Point> positions_vector_1;
   std::vector<Point> positions_vector_2;

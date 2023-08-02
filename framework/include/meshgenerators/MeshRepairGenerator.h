@@ -32,4 +32,10 @@ protected:
   bool _fix_overlapping_nodes;
   /// counting number of overlapped nodes fixed
   unsigned int _num_fixed_nodes;
+  /// refining elements that are too big
+  bool _fix_max_element_size;
+  ///
+  Real _max_element_size;
+  /// counting the number of elements that need to be refined for being too big
+  unsigned int _num_refined_elems;
 };
